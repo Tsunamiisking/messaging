@@ -39,48 +39,67 @@ const addDocumentToFirestore = async (data) => {
     console.error("error adding new doc:", e?.code);
   }
 };
-const checkIfConersationExists = async (senderID, recieverID) => {
+
+const checkIfConversationExists = async (senderID, receiverID) => {
   try {
     const collectRef = collection(firestore, "Conversation");
     const docref = query(
       collectRef,
-      where("participants", "array-contains-any", [senderID, recieverID])
+      where("participants", "array-contains", senderID)
     );
-    const oldConversation = await getDoc(docref);
-    if (oldConversation.exists()) {
-      return oldConversation.data();
-    } else {
-      console.log("No Prior Convetsation");
-      return null;
+    const querySnapshot = await getDocs(docref);
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data();
+
+      if (data.participants.includes(receiverID)) {
+        return doc.id; 
+      }
     }
+
+    console.log("No Prior Conversation");
+    return null; 
   } catch (e) {
     console.log("Error Checking If Conversation Exists", e);
   }
 };
 const initiateConversation = async (message, senderID, recieverID) => {
   let conversationID = null;
-  // Query db is any conversation exists with both sender and reciever ID...
-
-  // If YES =>  go back to that conversation
-
-  // if NO => start a new conversation
+  const messageObj = {
+    senderID,
+    text: message,
+    timestamp: new Date(),
+  };
+  // Query db if any conversation exists with both sender and reciever ID...
   try {
-    const newDocRef = await addDoc(collection(firestore, "Conversation"), {
-      participants: [senderID, recieverID],
-      messages: [
-        {
-          senderID,
-          text: message,
-          timestamp: new Date(),
-        },
-      ],
-    });
+    const priorConvoID = await checkIfConversationExists(senderID, recieverID);
 
-    conversationID = newDocRef.id;
-    return conversationID;
-  } catch (error) {
-    console.error("Error initiating conversation:", error);
-    throw error;
+    // If YES => add message to conversation and go back to that conversation
+    if (priorConvoID) {
+      try {
+        await addMessageToConversation(messageObj, priorConvoID);
+      } catch (e) {
+        console.log("Failed to add message from init convo function: ", e);
+      }
+      conversationID = priorConvoID;
+      return conversationID;
+    }
+    // if NO => start a new conversation
+    else {
+      try {
+        const newDocRef = await addDoc(collection(firestore, "Conversation"), {
+          participants: [senderID, recieverID],
+          messages: [ messageObj ],
+        });
+
+        conversationID = newDocRef.id;
+        return conversationID;
+      } catch (error) {
+        console.error("Error initiating conversation:", error);
+        throw error;
+      }
+    }
+  } catch (e) {
+    console.log("Error calling check function in init convo function", e);
   }
 };
 
