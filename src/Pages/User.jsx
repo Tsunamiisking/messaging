@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { authStateChange } from "../util/auth";
-import { getAllConversationWithID } from "../util/db";
+import { getConversationWithID } from "../util/db";
 
 const User = () => {
   const [messages, setMessages] = useState([]);
@@ -28,7 +28,7 @@ const handleNewMessage = (doc) => {
 
   const getconvo = async () => {
     try {
-        const conversation = await getAllConversationWithID(id);
+        const conversation = await getConversationWithID(id);
         if (conversation) {
             // console.log(conversation)
             // console.log(userID)

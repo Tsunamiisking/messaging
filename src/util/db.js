@@ -108,7 +108,7 @@ const initiateConversation = async (message, senderID, recieverID) => {
   }
 };
 
-const getAllConversationWithID = async (id) => {
+const getConversationWithID = async (id) => {
   try {
     const docRef = doc(firestore, "Conversation", id);
     const docSnap = await getDoc(docRef);
@@ -138,5 +138,5 @@ export {
   addDocumentToFirestore,
   allUsersFromFirestore,
   initiateConversation,
-  getAllConversationWithID,
+  getConversationWithID,
 };
