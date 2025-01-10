@@ -5,6 +5,7 @@ import {
   collection,
   getDoc,
   getDocs,
+  updateDoc,
   setDoc,
   doc,
   query,
@@ -55,7 +56,6 @@ const checkIfConversationExists = async (senderID, receiverID) => {
         return doc.id; 
       }
     }
-
     // using forEach
     // querySnapshot.docs.forEach((doc) => {
     //   const data = doc.data()
@@ -78,7 +78,6 @@ const initiateConversation = async (message, senderID, recieverID) => {
   // Query db if any conversation exists with both sender and reciever ID...
   try {
     const priorConvoID = await checkIfConversationExists(senderID, recieverID);
-
     // If YES => add message to conversation and go back to that conversation
     if (priorConvoID) {
       try {
