@@ -56,6 +56,12 @@ const checkIfConversationExists = async (senderID, receiverID) => {
       }
     }
 
+    // using forEach
+    // querySnapshot.docs.forEach((doc) => {
+    //   const data = doc.data()
+    //   if (data.participants.includes(receiverID)) return doc.id
+    // })  
+
     console.log("No Prior Conversation");
     return null; 
   } catch (e) {
