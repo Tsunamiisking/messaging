@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { authStateChange } from "../util/auth";
-import { getConversationWithID } from "../util/db";
+import { getConversationWithID, addMessageToConversation } from "../util/db";
 
 const User = () => {
   const [messages, setMessages] = useState([]);
@@ -14,50 +14,54 @@ const User = () => {
   const { user, loading } = authStateChange();
 
 
-const handleNewMessage = (doc) => {
-    setSentMessages((prevMessages) => [
-      ...prevMessages,
-      {
-        id: doc.senderID,
-        message: doc.text,
-        timestamp: doc.timestamp,
-      },
-    ]);
-    console.log(sentMessages)
-  };
-
-  const getconvo = async () => {
+// const addDbmessagesToSentMEssages = (doc) => {
+//     setSentMessages((prevMessages) => [
+//       ...prevMessages,
+//       {
+//         id: doc.senderID,
+//         text: doc.text,
+//         timestamp: doc.timestamp,
+//       },
+//     ]);
+//   };
+  
+const loadAllPreviousConversation = async () => {
     try {
         const conversation = await getConversationWithID(id);
         if (conversation) {
-            // console.log(conversation)
-            // console.log(userID)
-            conversation.messages.map((doc) => {
-                if (doc.senderID === userID) {
-                    handleNewMessage(doc)
-                }
+            conversation.messages.map((message) => {
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                      id: message.senderID,
+                      text: message.text,
+                      timestamp: message.timestamp,
+                    },
+                  ]);
             })
         }
-        else console.log("what is this man")
 
+
+        else console.log("what is this man")
       }catch(e) {
         console.log("Omo GUYYYY!!! ", e)
       }
   }
 
-//   For Generating or checking if convo exists
-  useEffect(() => {
-    getconvo()
-  }, [] )
+//   Generate all previous conversations when the page loads
+//   useEffect(() => {
+//     loadAllPreviousConversation()
+//   }, [] )
 
 
 
 // For checking if user is logged in
   useEffect(() => {
     if (!loading) {
-        setUserID(user.uid)
-        // console.log(userID)
-        // console.log(user)
+        setUserID((value) => {
+            value = user.uid
+        })
+        loadAllPreviousConversation()
       if (!user) {
         navigate("/");
       }
@@ -67,10 +71,17 @@ const handleNewMessage = (doc) => {
 
   const handleSendMessage = () => {
     if (input.trim()) {
-      setMessages([
-        ...messages,
-        { text: input, sender: "You", timestamp: new Date() },
-      ]);
+        const messageOBj = {
+            senderID : userID,
+            text: input.trim(),
+            timestamp: new Date()
+        }
+        addMessageToConversation(messageOBj, id)
+        setMessages((prev) => [
+            ...prev,
+            messageOBj
+        ])
+
       setInput("");
     }
   };
@@ -78,19 +89,19 @@ const handleNewMessage = (doc) => {
   return (
     <div className="p-4 max-w-md mx-auto bg-white shadow-lg rounded-lg">
       <div className="space-y-4 max-h-60 overflow-y-auto">
-        {messages.map((message, index) => (
+        {messages.map((messageobj, index) => (
           <div
             key={index}
             className={`p-2 rounded-lg ${
-              message.sender === "You"
+                messageobj.senderID === userID
                 ? "bg-blue-500 text-white self-end"
                 : "bg-gray-200 text-black"
             }`}
           >
-            <p>{message.text}</p>
-            <span className="text-xs text-gray-500">
-              {message.timestamp.toLocaleTimeString()}
-            </span>
+            <p>{messageobj.text}</p>
+            {/* <span className="text-xs text-gray-500">
+              {messageobj.timestamp.}
+            </span> */}
           </div>
         ))}
       </div>

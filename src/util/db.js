@@ -139,4 +139,5 @@ export {
   allUsersFromFirestore,
   initiateConversation,
   getConversationWithID,
+  addMessageToConversation,
 };
