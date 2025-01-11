@@ -1,83 +1,65 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { authStateChange } from "../util/auth";
+import { Timestamp } from "firebase/firestore";
 import { getConversationWithID, addMessageToConversation } from "../util/db";
 
 const User = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [userID, setUserID] = useState(null)
+  const [userID, setUserID] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading } = authStateChange();
 
-
-// const addDbmessagesToSentMEssages = (doc) => {
-//     setSentMessages((prevMessages) => [
-//       ...prevMessages,
-//       {
-//         id: doc.senderID,
-//         text: doc.text,
-//         timestamp: doc.timestamp,
-//       },
-//     ]);
-//   };
-  
-const loadAllPreviousConversation = async () => {
+  const loadAllPreviousConversation = async () => {
     try {
-        const conversation = await getConversationWithID(id);
-        if (conversation) {
-            conversation.messages.map((message) => {
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                      id: message.senderID,
-                      text: message.text,
-                      timestamp: message.timestamp,
-                    },
-                  ]);
-            })
-        }
+      const conversation = await getConversationWithID(id);
+      if (conversation) {
+        conversation.messages.map((message) => {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              id: message.senderID,
+              text: message.text,
+              timestamp: message.timestamp,
+            },
+          ]);
+        });
+      } else console.log("what is this man");
+    } catch (e) {
+      console.log("Omo GUYYYY!!! ", e);
+    }
+  };
 
-        else console.log("what is this man")
-      }catch(e) {
-        console.log("Omo GUYYYY!!! ", e)
-      }
-  }
-
-//   Generate all previous conversations when the page loads
-//   useEffect(() => {
-//     loadAllPreviousConversation()
-//   }, [] )
-
-// For checking if user is logged in
+  // For checking if user is logged in
   useEffect(() => {
     if (!loading) {
-        setUserID((value) => {
-            value = user.uid
-        })
-        loadAllPreviousConversation()
+      setUserID((value) => {
+        value = user.uid;
+      });
+      loadAllPreviousConversation();
       if (!user) {
         navigate("/");
       }
     }
-
   }, [user]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (input.trim()) {
-        const messageOBj = {
-            senderID : userID,
-            text: input.trim(),
-            timestamp: new Date()
-        }
-        addMessageToConversation(messageOBj, id)
-        setMessages((prev) => [
-            ...prev,
-            messageOBj
-        ])
-
-      setInput("");
+      const messageOBj = {
+        senderID: user.uid,
+        text: input.trim(),
+        timestamp: new Date(),
+      };
+      console.log(messageOBj)
+      try {
+        await addMessageToConversation(messageOBj, id);
+        setMessages((prev) => [...prev, messageOBj]);
+        setInput("");
+      } catch (e) {
+        console.log("I dont know what is wrong with handle submit", e);
+      }
     }
   };
 
@@ -88,15 +70,15 @@ const loadAllPreviousConversation = async () => {
           <div
             key={index}
             className={`p-2 rounded-lg ${
-                messageobj.senderID === userID
+              messageobj.id === user.uid
                 ? "bg-blue-500 text-white self-end"
                 : "bg-gray-200 text-black"
             }`}
           >
             <p>{messageobj.text}</p>
-            {/* <span className="text-xs text-gray-500">
-              {messageobj.timestamp.}
-            </span> */}
+            <span className="text-xs text-gray-500">
+              {/* {messageobj.timestamp.toDate().toLocaleString()} */}
+            </span>
           </div>
         ))}
       </div>
