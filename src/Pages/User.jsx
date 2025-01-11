@@ -1,44 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { authStateChange } from "../util/auth";
-import { Timestamp } from "firebase/firestore";
+import { onSnapshot, Timestamp } from "firebase/firestore";
 import { getConversationWithID, addMessageToConversation } from "../util/db";
 
 const User = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [userID, setUserID] = useState(null);
+  //   const [userID, setUserID] = useState(null);
+  const [conversationData , setConversationData] = useState(null)
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading } = authStateChange();
 
-  const loadAllPreviousConversation = async () => {
-    try {
-      const conversation = await getConversationWithID(id);
-      if (conversation) {
-        conversation.messages.map((message) => {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              id: message.senderID,
-              text: message.text,
-              timestamp: message.timestamp,
-            },
-          ]);
-        });
-      } else console.log("what is this man");
-    } catch (e) {
-      console.log("Omo GUYYYY!!! ", e);
-    }
+  const convertTime = (timeArg) => {
+    const FMTdate = timeArg.toDate().toLocaleString();
+    return FMTdate;
   };
 
+//   const loadAllPreviousConversation = async () => {
+//     try {
+//         await getConversationWithID(id, setConversationData);
+//     } catch (e) {
+//       console.log("Omo GUYYYY!!! ", e);
+//     }
+//   };
+    
   // For checking if user is logged in
   useEffect(() => {
     if (!loading) {
-      setUserID((value) => {
-        value = user.uid;
-      });
-      loadAllPreviousConversation();
+        getConversationWithID(id, setConversationData)
       if (!user) {
         navigate("/");
       }
@@ -52,7 +43,7 @@ const User = () => {
         text: input.trim(),
         timestamp: new Date(),
       };
-      console.log(messageOBj)
+      console.log(messageOBj);
       try {
         await addMessageToConversation(messageOBj, id);
         setMessages((prev) => [...prev, messageOBj]);
@@ -63,6 +54,19 @@ const User = () => {
     }
   };
 
+  useEffect(() => {
+    console.log(conversationData)
+    if (conversationData) {
+      const newMessages = conversationData.messages.map((message) => ({
+        senderID: message.senderID,
+        text: message.text,
+        timestamp: message.timestamp,
+      }));
+      setMessages((prevMessages) => [...prevMessages, ...newMessages]);
+    } 
+}, [conversationData])
+
+
   return (
     <div className="p-4 max-w-md mx-auto bg-white shadow-lg rounded-lg">
       <div className="space-y-4 max-h-60 overflow-y-auto">
@@ -70,14 +74,14 @@ const User = () => {
           <div
             key={index}
             className={`p-2 rounded-lg ${
-              messageobj.id === user.uid
+              messageobj.senderID === user.uid
                 ? "bg-blue-500 text-white self-end"
                 : "bg-gray-200 text-black"
             }`}
           >
             <p>{messageobj.text}</p>
             <span className="text-xs text-gray-500">
-              {/* {messageobj.timestamp.toDate().toLocaleString()} */}
+              {new Date(messageobj.timestamp.seconds * 1000).toLocaleString()}
             </span>
           </div>
         ))}

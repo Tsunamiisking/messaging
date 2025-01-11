@@ -10,6 +10,7 @@ import {
   doc,
   query,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { firestore } from "../firebase/config";
 // import { arrayUnion } from "firebase/firestore/lite";
@@ -108,13 +109,17 @@ const initiateConversation = async (message, senderID, recieverID) => {
   }
 };
 
-const getConversationWithID = async (id) => {
+const getConversationWithID = async (id, setConversationData) => {
   try {
     const docRef = doc(firestore, "Conversation", id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return docSnap.data();
-    }
+    // const docSnap = await getDoc(docRef);
+    onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setConversationData(docSnap.data());
+      } else {
+        console.log("Document Doesn't exist")
+      }
+    })
   } catch (e) {
     console.log("DB util getAllConversationWithID function", e);
   }
