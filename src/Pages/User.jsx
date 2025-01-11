@@ -7,8 +7,6 @@ const User = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [userID, setUserID] = useState(null)
-  const [sentMessages, setSentMessages] = useState([])
-  const [recievedMessages, setRecievedMessages] = useState([])
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading } = authStateChange();
@@ -41,7 +39,6 @@ const loadAllPreviousConversation = async () => {
             })
         }
 
-
         else console.log("what is this man")
       }catch(e) {
         console.log("Omo GUYYYY!!! ", e)
@@ -52,8 +49,6 @@ const loadAllPreviousConversation = async () => {
 //   useEffect(() => {
 //     loadAllPreviousConversation()
 //   }, [] )
-
-
 
 // For checking if user is logged in
   useEffect(() => {
