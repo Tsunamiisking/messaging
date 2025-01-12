@@ -47,7 +47,7 @@ const User = () => {
         text: message.text,
         timestamp: message.timestamp,
       }));
-      setMessages((prevMessages) => [...prevMessages, ...newMessages]);
+      setMessages([...newMessages]);
     }
   }, [conversationData]);
 
