@@ -1,40 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { authStateChange } from "../util/auth";
-import { onSnapshot, Timestamp } from "firebase/firestore";
+import { onSnapshot, Timestamp, doc, collection } from "firebase/firestore";
 import { getConversationWithID, addMessageToConversation } from "../util/db";
+import { firestore } from "../firebase/config";
 
 const User = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  //   const [userID, setUserID] = useState(null);
-  const [conversationData , setConversationData] = useState(null)
+  const [conversationData, setConversationData] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading } = authStateChange();
 
-  const convertTime = (timeArg) => {
-    const FMTdate = timeArg.toDate().toLocaleString();
-    return FMTdate;
-  };
-
-//   const loadAllPreviousConversation = async () => {
-//     try {
-//         await getConversationWithID(id, setConversationData);
-//     } catch (e) {
-//       console.log("Omo GUYYYY!!! ", e);
-//     }
-//   };
-    
-  // For checking if user is logged in
   useEffect(() => {
-    if (!loading) {
-        getConversationWithID(id, setConversationData)
-      if (!user) {
-        navigate("/");
-      }
-    }
-  }, [user]);
+    // await getConversationWithID(id, setConversationData);
+    const docRef = doc(collection(firestore, "Conversation"), id);
+    onSnapshot(docRef, (docSnap) => {
+      setConversationData(docSnap.data());
+    });
+  }, [])
+
 
   const handleSendMessage = async () => {
     if (input.trim()) {
@@ -46,7 +32,6 @@ const User = () => {
       console.log(messageOBj);
       try {
         await addMessageToConversation(messageOBj, id);
-        setMessages((prev) => [...prev, messageOBj]);
         setInput("");
       } catch (e) {
         console.log("I dont know what is wrong with handle submit", e);
@@ -55,7 +40,7 @@ const User = () => {
   };
 
   useEffect(() => {
-    console.log(conversationData)
+    // console.log(conversationData)
     if (conversationData) {
       const newMessages = conversationData.messages.map((message) => ({
         senderID: message.senderID,
@@ -63,9 +48,18 @@ const User = () => {
         timestamp: message.timestamp,
       }));
       setMessages((prevMessages) => [...prevMessages, ...newMessages]);
-    } 
-}, [conversationData])
+    }
+  }, [conversationData]);
 
+
+  // For checking if user is logged in
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        navigate("/");
+      }
+    }
+  }, [user, loading]);
 
   return (
     <div className="p-4 max-w-md mx-auto bg-white shadow-lg rounded-lg">
