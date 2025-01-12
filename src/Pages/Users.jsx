@@ -1,11 +1,12 @@
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import "../index.css";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import { authStateChange } from "../util/auth";
 import { allUsersFromFirestore } from "../util/db";
 import { initiateConversation } from "../util/db";
-import { serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, serverTimestamp, doc, } from "firebase/firestore";
+import { firestore } from "../firebase/config";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -18,6 +19,17 @@ const Users = () => {
   const auth = getAuth();
 
   const fetchAllUsers = async () => {
+    // Trying to implements users load on snapshot
+    
+    // const allUsers = []
+    // const collectRef = collection(firestore, "Users")
+    // onSnapshot(collectRef, (docSnap) => {
+    //   docSnap.forEach((doc) => {
+    //     allUsers.push({ id : doc.id, ...doc.data()})
+    //     // console.log(doc.data())
+    //   })
+    //   setAllUsersGlobal(allUsers)
+    // })
     const allusersLocal = await allUsersFromFirestore();
     setAllUsersGlobal(allusersLocal); // Update state directly
   };

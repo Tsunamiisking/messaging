@@ -62,41 +62,53 @@ const User = () => {
   }, [user, loading]);
 
   return (
-    <div className="p-4 max-w-md mx-auto bg-white shadow-lg rounded-lg">
-      <div className="space-y-4 max-h-60 overflow-y-auto">
-        {messages.map((messageobj, index) => (
-          <div
-            key={index}
-            className={`p-2 rounded-lg ${
-              messageobj.senderID === user.uid
-                ? "bg-blue-500 text-white self-end"
-                : "bg-gray-200 text-black"
-            }`}
-          >
-            <p>{messageobj.text}</p>
-            <span className="text-xs text-gray-500">
-              {new Date(messageobj.timestamp.seconds * 1000).toLocaleString()}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 flex">
+    <div className="flex flex-col h-screen bg-gray-100">
+    {/* Header */}
+    <header className="p-4 bg-blue-600 text-white text-center shadow-md">
+      <h1 className="text-lg font-semibold">Chat</h1>
+    </header>
+  
+    {/* Messages container */}
+    <div
+      className="flex-1 overflow-y-auto px-4 py-2 space-y-4"
+      ref={(el) => el && el.scrollTo(0, el.scrollHeight)} // Auto-scroll to the bottom
+    >
+      {messages.map((messageobj, index) => (
+        <div
+          key={index}
+          className={`p-3 rounded-lg max-w-xs ${
+            messageobj.senderID === user.uid
+              ? "bg-blue-500 text-white self-end ml-auto"
+              : "bg-gray-200 text-black mr-auto"
+          }`}
+        >
+          <p className="mb-1">{messageobj.text}</p>
+          <span className="text-xs text-gray-400">
+            {new Date(messageobj.timestamp.seconds * 1000).toLocaleString()}
+          </span>
+        </div>
+      ))}
+    </div>
+  
+    {/* Input area */}
+    <div className="p-4 bg-white shadow-inner">
+      <div className="flex">
         <textarea
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          className="p-2 border border-gray-300 rounded-l-lg w-full"
+          className="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring focus:border-blue-300"
         />
         <button
           onClick={handleSendMessage}
-          className="p-2 bg-blue-500 text-white rounded-r-lg"
+          className="p-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600"
         >
           Send
         </button>
       </div>
     </div>
+  </div>
   );
 };
 
